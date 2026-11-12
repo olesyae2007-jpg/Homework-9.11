@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstddef>
 #include <limits>
 #include <stdexcept>
@@ -332,6 +333,72 @@ int Mtx::det() const{
 
   return res;
 }
+
+class Mtxs {
+private:
+    size_t kj;
+    Mtx * mtxs;
+
+public:
+    // Конструктор по умолчанию
+    Mtxs() : kj(0), mtxs(nullptr) {}
+
+    // Конструктор с параметрами
+    Mtxs(size_t kj, const Mtx* arr = nullptr) : kj(kj), mtxs(kj ? new Mtx[kj] : nullptr) {
+        if (arr) {
+            for (size_t i = 0; i < kj; ++i) {
+                mtxs[i] = arr[i];
+            }
+        }
+    }
+
+    // 1. Конструктор копирования
+    Mtxs(const Mtxs& rhs) : kj(rhs.kj), mtxs(rhs.kj ? new Mtx[rhs.kj] : nullptr) {
+        for (size_t i = 0; i < kj; ++i) {
+            mtxs[i] = rhs.mtxs[i];
+        }
+    }
+
+    // 2. Конструктор перемещения
+    Mtxs(Mtxs&& rhs) noexcept : kj(rhs.kj), mtxs(rhs.mtxs) {
+        rhs.kj = 0;
+        rhs.mtxs = nullptr;
+    }
+
+    // 3. Оператор копирующего присваивания
+    Mtxs& operator=(const Mtxs& rhs) {
+        if (this != &rhs) {
+            Mtxs temp(rhs);
+            std::swap(kj, temp.kj);
+            std::swap(mtxs, temp.mtxs);
+        }
+        return *this;
+    }
+
+    // 4. Оператор перемещающего присваивания
+    Mtxs& operator=(Mtxs&& rhs) noexcept {
+        if (this != &rhs) {
+            delete[] mtxs;
+            kj = rhs.kj;
+            mtxs = rhs.mtxs;
+            rhs.kj = 0;
+            rhs.mtxs = nullptr;
+        }
+        return *this;
+    }
+    // 5. Диструктор
+    ~Mtxs() {
+        delete[] mtxs;
+    }
+
+    Mtx conv(Mtx m, Mtx (*f)(Mtx, Mtx)) const {
+        Mtx result = m;
+        for (size_t i = 0; i < kj; ++i) {
+            result = f(result, mtxs[i]);
+        }
+        return result;
+    }
+};
 
 class Points {
   Ints data_points;
